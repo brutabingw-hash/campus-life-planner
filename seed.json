@@ -1,0 +1,119 @@
+[
+  {
+    "id": "act_0001",
+    "title": "CS 301 lab report",
+    "dueDate": "2026-10-19",
+    "duration": 120,
+    "tag": "Study",
+    "createdAt": "2026-10-10T08:15:00.000Z",
+    "updatedAt": "2026-10-10T08:15:00.000Z"
+  },
+  {
+    "id": "act_0002",
+    "title": "Calculus quiz revision",
+    "dueDate": "2026-10-20",
+    "duration": 90,
+    "tag": "Study",
+    "createdAt": "2026-10-10T08:20:00.000Z",
+    "updatedAt": "2026-10-12T19:02:00.000Z"
+  },
+  {
+    "id": "act_0003",
+    "title": "Debate club meeting at 18:30",
+    "dueDate": "2026-10-18",
+    "duration": 75,
+    "tag": "Club",
+    "createdAt": "2026-10-11T11:00:00.000Z",
+    "updatedAt": "2026-10-11T11:00:00.000Z"
+  },
+  {
+    "id": "act_0004",
+    "title": "Volleyball practice",
+    "dueDate": "2026-10-21",
+    "duration": 60,
+    "tag": "Sport",
+    "createdAt": "2026-10-11T12:30:00.000Z",
+    "updatedAt": "2026-10-11T12:30:00.000Z"
+  },
+  {
+    "id": "act_0005",
+    "title": "Library book return",
+    "dueDate": "2026-10-22",
+    "duration": 5,
+    "tag": "Admin",
+    "createdAt": "2026-10-12T09:45:00.000Z",
+    "updatedAt": "2026-10-12T09:45:00.000Z"
+  },
+  {
+    "id": "act_0006",
+    "title": "Group sprint: UI mockups",
+    "dueDate": "2026-10-23",
+    "duration": 240,
+    "tag": "Group-Work",
+    "createdAt": "2026-10-12T14:05:00.000Z",
+    "updatedAt": "2026-10-15T07:40:00.000Z"
+  },
+  {
+    "id": "act_0007",
+    "title": "Hackathon all-nighter",
+    "dueDate": "2026-10-24",
+    "duration": 720,
+    "tag": "Social",
+    "createdAt": "2026-10-13T16:10:00.000Z",
+    "updatedAt": "2026-10-13T16:10:00.000Z"
+  },
+  {
+    "id": "act_0008",
+    "title": "Scholarship form, closes 23:59",
+    "dueDate": "2026-10-31",
+    "duration": 45.5,
+    "tag": "Admin",
+    "createdAt": "2026-10-13T18:00:00.000Z",
+    "updatedAt": "2026-10-13T18:00:00.000Z"
+  },
+  {
+    "id": "act_0009",
+    "title": "Choir rehearsal — Dvořák programme",
+    "dueDate": "2026-11-05",
+    "duration": 110,
+    "tag": "Club",
+    "createdAt": "2026-10-14T20:25:00.000Z",
+    "updatedAt": "2026-10-14T20:25:00.000Z"
+  },
+  {
+    "id": "act_0010",
+    "title": "Exam prep: regex & JSON \"edge cases\"",
+    "dueDate": "2026-10-20",
+    "duration": 180,
+    "tag": "Study",
+    "createdAt": "2026-10-15T06:00:00.000Z",
+    "updatedAt": "2026-10-16T21:15:00.000Z"
+  },
+  {
+    "id": "act_0011",
+    "title": "Coffee catch-up with mentor",
+    "dueDate": "2026-10-17",
+    "duration": 25,
+    "tag": "Social",
+    "createdAt": "2026-10-15T08:30:00.000Z",
+    "updatedAt": "2026-10-15T08:30:00.000Z"
+  },
+  {
+    "id": "act_0012",
+    "title": "New year planning session",
+    "dueDate": "2026-12-31",
+    "duration": 30,
+    "tag": "Admin",
+    "createdAt": "2026-10-16T10:00:00.000Z",
+    "updatedAt": "2026-10-16T10:00:00.000Z"
+  },
+  {
+    "id": "act_0013",
+    "title": "Leap-day make-up class",
+    "dueDate": "2028-02-29",
+    "duration": 50,
+    "tag": "Class",
+    "createdAt": "2026-10-16T10:05:00.000Z",
+    "updatedAt": "2026-10-16T10:05:00.000Z"
+  }
+]

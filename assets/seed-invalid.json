@@ -1,0 +1,37 @@
+[
+  {
+    "id": "act_0001",
+    "title": "  Leading space and trailing space  ",
+    "dueDate": "2026-10-19",
+    "duration": 60,
+    "tag": "Study",
+    "createdAt": "2026-10-10T08:15:00.000Z",
+    "updatedAt": "2026-10-10T08:15:00.000Z"
+  },
+  {
+    "id": "act_0002",
+    "title": "Revision revision marathon",
+    "dueDate": "2026-02-30",
+    "duration": "ninety",
+    "tag": "Study 2",
+    "createdAt": "2026-10-10T08:20:00.000Z",
+    "updatedAt": "2026-10-10T08:20:00.000Z"
+  },
+  {
+    "id": "act_0002",
+    "title": "Duplicate id above",
+    "dueDate": "2026-13-01",
+    "duration": -15,
+    "tag": "",
+    "createdAt": "2026-10-10T08:25:00.000Z",
+    "updatedAt": "2026-10-10T08:25:00.000Z"
+  },
+  {
+    "title": "No id at all",
+    "dueDate": "19/10/2026",
+    "duration": 12.345,
+    "tag": "Club",
+    "createdAt": "2026-10-10T08:30:00.000Z",
+    "updatedAt": "2026-10-10T08:30:00.000Z"
+  }
+]
