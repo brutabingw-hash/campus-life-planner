@@ -8,8 +8,8 @@ committed to this week?*
 Built with vanilla HTML, CSS and JavaScript ES modules. No frameworks, no
 libraries, no build step.
 
-- **Live site:** https://endahiro.github.io/campus-life-planner/
-- **Test page:** https://endahiro.github.io/campus-life-planner/tests.html
+- **Live site:** https://brutabingw-hash.github.io/campus-life-planner/
+- **Test page:** https://brutabingw-hash.github.io/campus-life-planner/tests.html
 - **Demo video:** _add the unlisted link here before submitting_
 - **Theme:** 2 of 3 - Campus Life Planner (tasks and events, durations, tags, search)
 
@@ -87,7 +87,7 @@ The app uses ES modules, which browsers refuse to load over `file://`, so serve
 the folder over HTTP:
 
 ```bash
-git clone https://github.com/endahiro/campus-life-planner.git
+git clone https://github.com/brutabingw-hash/campus-life-planner.git
 cd campus-life-planner
 
 python -m http.server 8000      # or: npx serve .
@@ -448,5 +448,6 @@ UI, layout and all logic are my own work.
 - Accessibility decisions follow the WAI-ARIA Authoring Practices on live
   regions and sortable table headers, and WCAG 2.1 AA for contrast and motion.
 
-**Author:** Evan Ndahiro - [github.com/endahiro](https://github.com/endahiro) -
-[saskevan@gmail.com](mailto:saskevan@gmail.com)
+**Author:** Blair Rutabingwa -
+[github.com/brutabingw-hash](https://github.com/brutabingw-hash) -
+[b.rutabingw@alustudent.com](mailto:b.rutabingw@alustudent.com)
