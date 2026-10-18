@@ -1,0 +1,21 @@
+# operating system junk
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# this project needs no build step; these should never appear
+node_modules/
+package-lock.json
+dist/
+*.log
+
+# local exports made from the Settings panel
+campus-planner-*.json
+campus-planner-*.csv
