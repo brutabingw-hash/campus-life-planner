@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Campus Life Planner - tests</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <style>
+    .result { font-weight: 700; }
+    .pass { color: var(--ok); }
+    .fail { color: var(--danger); }
+    .summary { font-size: 1.05rem; font-weight: 700; }
+    tbody td { text-align: left; }
+    tbody td::before { content: ""; display: none; }
+    tbody tr { display: table-row; }
+    thead { display: table-header-group; }
+    .case { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 0.85rem; }
+  </style>
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <p class="brand"><span class="brand-mark" aria-hidden="true">CLP</span> Test suite</p>
+      <nav aria-label="Main navigation">
+        <ul class="nav-list"><li><a href="index.html">Back to the app</a></li></ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap" tabindex="-1">
+    <h1>Unit tests</h1>
+    <p class="lede">
+      Plain assertions against the pure functions in <code>validators.js</code>,
+      <code>search.js</code>, <code>stats.js</code> and <code>state.js</code>.
+      No test framework, no network, nothing written to localStorage.
+    </p>
+
+    <p id="summary" class="summary status-bar" role="status" aria-live="polite">Running tests...</p>
+
+    <section aria-labelledby="results-h">
+      <h2 id="results-h">Results</h2>
+      <div class="table-wrap">
+        <table>
+          <caption class="visually-hidden">One row per assertion</caption>
+          <thead>
+            <tr>
+              <th scope="col">Group</th>
+              <th scope="col">Assertion</th>
+              <th scope="col">Result</th>
+            </tr>
+          </thead>
+          <tbody id="results"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap"><p>Campus Life Planner test page.</p></div>
+  </footer>
+
+  <script type="module">
+    import {
+      validateTitle, validateDate, validateDuration, validateTag,
+      validateCap, validateTagList, validateImport, isRealDate,
+      normalizeText, PATTERNS
+    } from './scripts/validators.js';
+
+    import {
+      compileRegex, parseQuery, filterRecords, sortRecords, highlight, escapeHtml
+    } from './scripts/search.js';
+
+    import {
+      formatDuration, minutesToHours, hoursToMinutes, addDays,
+      sumMinutes, topTag, computeStats, sevenDayTrend, capStatus
+    } from './scripts/stats.js';
+
+    import { nextId } from './scripts/state.js';
+
+    /* ---------- tiny assertion runner ---------- */
+
+    const body = document.getElementById('results');
+    let passed = 0;
+    let failed = 0;
+    let group = '';
+
+    function describe(name) { group = name; }
+
+    function check(name, actual, expected) {
+      const got = JSON.stringify(actual);
+      const want = JSON.stringify(expected);
+      const good = got === want;
+      good ? passed++ : failed++;
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${escapeHtml(group)}</td>
+        <td class="case">${escapeHtml(name)}</td>
+        <td class="result ${good ? 'pass' : 'fail'}">
+          ${good ? 'pass' : `fail - expected ${escapeHtml(want)}, got ${escapeHtml(got)}`}
+        </td>`;
+      body.appendChild(row);
+    }
+
+    const okOf = (result) => result.ok;
+
+    /* ---------- fixtures ---------- */
+
+    const records = [
+      { id: 'act_0001', title: 'CS lab report', dueDate: '2026-10-19', duration: 120, tag: 'Study' },
+      { id: 'act_0002', title: 'Debate club at 18:30', dueDate: '2026-10-18', duration: 75, tag: 'Club' },
+      { id: 'act_0003', title: 'Volleyball practice', dueDate: '2026-10-21', duration: 60, tag: 'Sport' },
+      { id: 'act_0004', title: 'Library return', dueDate: '2026-10-22', duration: 5, tag: 'Admin' }
+    ];
+
+    /* ---------- rule 1: title ---------- */
+
+    describe('Rule 1 - title');
+    check('"CS lab report" is valid', okOf(validateTitle('CS lab report')), true);
+    check('leading space rejected', okOf(validateTitle(' CS lab')), false);
+    check('trailing space rejected', okOf(validateTitle('CS lab ')), false);
+    check('empty rejected', okOf(validateTitle('')), false);
+    check('two characters rejected', okOf(validateTitle('CS')), false);
+    check('digits only rejected', okOf(validateTitle('2026')), false);
+    check('81 characters rejected', okOf(validateTitle('a'.repeat(81))), false);
+
+    describe('Rule 5 - back-reference');
+    check('"Revision revision marathon" rejected', okOf(validateTitle('Revision revision marathon')), false);
+    check('repeat found regardless of case', PATTERNS.duplicateWord.test('Study study group'), true);
+    check('message names the repeated word', validateTitle('Lab lab notes').message, 'Remove the repeated word "Lab".');
+    check('"Lab notes lab setup" allowed (not adjacent)', okOf(validateTitle('Lab notes lab setup')), true);
+
+    describe('Rule 6 - lookahead');
+    check('titleShape needs a letter', PATTERNS.titleShape.test('----'), false);
+    check('titleShape accepts "Lab 3"', PATTERNS.titleShape.test('Lab 3'), true);
+    check('titleShape rejects 2 characters', PATTERNS.titleShape.test('ab'), false);
+
+    /* ---------- rule 2: duration ---------- */
+
+    describe('Rule 2 - duration');
+    check('"90" is valid', okOf(validateDuration('90')), true);
+    check('"7.5" is valid', okOf(validateDuration('7.5')), true);
+    check('"7.555" rejected (3 decimals)', okOf(validateDuration('7.555')), false);
+    check('"09" rejected (leading zero)', okOf(validateDuration('09')), false);
+    check('"0" rejected', okOf(validateDuration('0')), false);
+    check('"-15" rejected', okOf(validateDuration('-15')), false);
+    check('"ninety" rejected', okOf(validateDuration('ninety')), false);
+    check('1500 rejected (over a day)', okOf(validateDuration('1500')), false);
+
+    /* ---------- rule 3: date ---------- */
+
+    describe('Rule 3 - date');
+    check('"2026-10-20" is valid', okOf(validateDate('2026-10-20')), true);
+    check('"2026-13-01" rejected (month)', okOf(validateDate('2026-13-01')), false);
+    check('"2026-10-32" rejected (day)', okOf(validateDate('2026-10-32')), false);
+    check('"2026-1-5" rejected (not padded)', okOf(validateDate('2026-1-5')), false);
+    check('"19/10/2026" rejected (wrong format)', okOf(validateDate('19/10/2026')), false);
+    check('"2026-02-30" rejected (calendar check)', okOf(validateDate('2026-02-30')), false);
+    check('"2028-02-29" accepted (leap year)', okOf(validateDate('2028-02-29')), true);
+    check('isRealDate("2026-02-29") is false', isRealDate('2026-02-29'), false);
+
+    /* ---------- rule 4: tag ---------- */
+
+    describe('Rule 4 - tag');
+    check('"Study" is valid', okOf(validateTag('Study')), true);
+    check('"Group-Work" is valid', okOf(validateTag('Group-Work')), true);
+    check('"Study Group" is valid', okOf(validateTag('Study Group')), true);
+    check('"Study  Group" collapsed then valid', okOf(validateTag('Study  Group')), true);
+    check('"Study2" rejected (digit)', okOf(validateTag('Study2')), false);
+    check('"-Study" rejected (leading hyphen)', okOf(validateTag('-Study')), false);
+    check('empty rejected', okOf(validateTag('   ')), false);
+    check('normalizeText squashes spaces', normalizeText('  a   b  '), 'a b');
+
+    /* ---------- settings ---------- */
+
+    describe('Settings');
+    check('cap "1200" valid', okOf(validateCap('1200')), true);
+    check('cap "0" rejected', okOf(validateCap('0')), false);
+    check('cap "12.5" rejected', okOf(validateCap('12.5')), false);
+    check('cap 20000 rejected (over a week)', okOf(validateCap('20000')), false);
+    check('tag list "Study, Club" valid', okOf(validateTagList('Study, Club')), true);
+    check('tag list "Study, 4Club" rejected', okOf(validateTagList('Study, 4Club')), false);
+    check('empty tag list rejected', okOf(validateTagList('  ,  ')), false);
+
+    /* ---------- regex search ---------- */
+
+    describe('Safe regex compiler');
+    check('"lab" compiles', compileRegex('lab') instanceof RegExp, true);
+    check('unclosed "(" returns null', compileRegex('('), null);
+    check('unclosed "[a-" returns null', compileRegex('[a-'), null);
+    check('empty input returns null', compileRegex(''), null);
+    check('case-insensitive flag applied', compileRegex('lab', 'i').flags, 'i');
+
+    describe('Query parsing');
+    check('"@tag:Study lab" splits', parseQuery('@tag:Study lab'), { tag: 'Study', pattern: 'lab' });
+    check('"@tag:Group-Work" splits', parseQuery('@tag:Group-Work'), { tag: 'Group-Work', pattern: '' });
+    check('plain text is all pattern', parseQuery('lab|quiz'), { tag: '', pattern: 'lab|quiz' });
+
+    describe('Filtering');
+    check('"lab" matches 1 record', filterRecords(records, 'lab').matches.length, 1);
+    check('"LAB" matches when ignoring case', filterRecords(records, 'LAB', true).matches.length, 1);
+    check('"LAB" misses when case matters', filterRecords(records, 'LAB', false).matches.length, 0);
+    check('time-token pattern finds 18:30', filterRecords(records, '\\b\\d{2}:\\d{2}\\b').matches.length, 1);
+    check('"@tag:Study" filters by tag', filterRecords(records, '@tag:Study').matches.length, 1);
+    check('"@tag:Nope" matches nothing', filterRecords(records, '@tag:Nope').matches.length, 0);
+    check('invalid pattern keeps every record', filterRecords(records, '(').matches.length, 4);
+    check('invalid pattern reports an error', filterRecords(records, '(').error.length > 0, true);
+    check('date field is searchable', filterRecords(records, '2026-10-22').matches.length, 1);
+
+    describe('Highlighting');
+    check('match is wrapped in mark', highlight('CS lab report', /lab/i), 'CS <mark>lab</mark> report');
+    check('null regex returns plain text', highlight('CS lab', null), 'CS lab');
+    check('markup is escaped, not executed',
+      highlight('<img src=x onerror=alert(1)>', null),
+      '&lt;img src=x onerror=alert(1)&gt;');
+    check('empty-matching pattern changes nothing', highlight('CS lab', /a*/i), 'CS lab');
+    check('all matches are wrapped', highlight('lab lab', /lab/i), '<mark>lab</mark> <mark>lab</mark>');
+
+    describe('Sorting');
+    check('duration descending', sortRecords(records, 'duration', 'desc').map((r) => r.duration), [120, 75, 60, 5]);
+    check('duration ascending', sortRecords(records, 'duration', 'asc').map((r) => r.duration), [5, 60, 75, 120]);
+    check('title A to Z', sortRecords(records, 'title', 'asc')[0].title, 'CS lab report');
+    check('title Z to A', sortRecords(records, 'title', 'desc')[0].title, 'Volleyball practice');
+    check('due date soonest first', sortRecords(records, 'dueDate', 'asc')[0].dueDate, '2026-10-18');
+    check('original array is untouched', records[0].id, 'act_0001');
+
+    /* ---------- units and statistics ---------- */
+
+    describe('Units');
+    check('90 minutes shown as minutes', formatDuration(90), '90m');
+    check('90 minutes shown as hours', formatDuration(90, 'hours'), '1h 30m');
+    check('120 minutes shown as hours', formatDuration(120, 'hours'), '2h');
+    check('45 minutes shown as hours', formatDuration(45, 'hours'), '45m');
+    check('0 minutes shown as hours', formatDuration(0, 'hours'), '0m');
+    check('minutesToHours(90)', minutesToHours(90), 1.5);
+    check('hoursToMinutes(1.5)', hoursToMinutes(1.5), 90);
+
+    describe('Dates');
+    check('addDays crosses a year', addDays('2026-12-31', 1), '2027-01-01');
+    check('addDays crosses a month', addDays('2026-10-31', 1), '2026-11-01');
+    check('addDays into a leap day', addDays('2028-02-28', 1), '2028-02-29');
+
+    describe('Statistics');
+    check('sumMinutes', sumMinutes(records), 260);
+    check('topTag with no repeats is alphabetical', topTag(records).tag, 'Admin');
+    check('topTag counts repeats', topTag([...records, { tag: 'Sport' }]).tag, 'Sport');
+    check('record count', computeStats(records, '2026-10-18').count, 4);
+    check('week window totals 260', computeStats(records, '2026-10-18').upcomingMinutes, 260);
+    check('week window excludes later dates', computeStats(records, '2026-10-22').upcomingMinutes, 5);
+    check('trend has seven buckets', sevenDayTrend(records, '2026-10-18').length, 7);
+    check('trend puts 120 on 19 Oct', sevenDayTrend(records, '2026-10-18')[1].minutes, 120);
+
+    describe('Weekly target');
+    check('under target is not over', capStatus(260, 600).over, false);
+    check('under target leaves 340', capStatus(260, 600).difference, 340);
+    check('over target is flagged', capStatus(700, 600).over, true);
+    check('over target by 100', capStatus(700, 600).difference, 100);
+    check('percent is capped at 100', capStatus(900, 600).percent, 100);
+    check('no target means 0 percent', capStatus(260, 0).percent, 0);
+
+    /* ---------- ids and import ---------- */
+
+    describe('Identifiers');
+    check('first id', nextId([]), 'act_0001');
+    check('next id continues the highest', nextId([{ id: 'act_0003' }, { id: 'act_0001' }]), 'act_0004');
+    check('padding holds at four digits', nextId([{ id: 'act_0099' }]), 'act_0100');
+
+    describe('Import validation');
+    const goodPayload = [{
+      id: 'act_0001', title: 'CS lab report', dueDate: '2026-10-19', duration: 120, tag: 'Study'
+    }];
+    check('a valid array is accepted', validateImport(goodPayload).ok, true);
+    check('timestamps are filled in', typeof validateImport(goodPayload).records[0].createdAt, 'string');
+    check('an object is rejected', validateImport({ id: 'act_0001' }).ok, false);
+    check('a string is rejected', validateImport('nope').ok, false);
+    check('an empty array is rejected', validateImport([]).ok, false);
+    check('a missing id is rejected', validateImport([{ title: 'No id here', dueDate: '2026-10-19', duration: 10, tag: 'Study' }]).ok, false);
+    check('a duplicate id is rejected', validateImport([
+      { id: 'a1', title: 'First item', dueDate: '2026-10-19', duration: 10, tag: 'Study' },
+      { id: 'a1', title: 'Second item', dueDate: '2026-10-20', duration: 10, tag: 'Study' }
+    ]).ok, false);
+    check('a bad field is rejected', validateImport([
+      { id: 'a1', title: 'Bad date', dueDate: '2026-02-30', duration: 10, tag: 'Study' }
+    ]).ok, false);
+    check('every problem is listed', validateImport([
+      { id: 'a1', title: ' spaced ', dueDate: '2026-02-30', duration: 'x', tag: '9' }
+    ]).errors.length, 4);
+
+    /* ---------- summary ---------- */
+
+    const summary = document.getElementById('summary');
+    summary.textContent = `${passed + failed} assertions: ${passed} passed, ${failed} failed.`;
+    summary.classList.add(failed === 0 ? 'is-ok' : 'is-error');
+    document.title = `${failed === 0 ? 'PASS' : 'FAIL'} - Campus Life Planner tests`;
+  </script>
+</body>
+</html>
