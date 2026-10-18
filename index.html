@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Campus Life Planner</title>
+  <meta name="description" content="A responsive, accessible planner for campus tasks and events: durations, tags, regex search and weekly time targets." />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <p class="brand"><span class="brand-mark" aria-hidden="true">CLP</span> Campus Life Planner</p>
+
+      <nav aria-label="Main navigation">
+        <ul class="nav-list">
+          <li><a href="#dashboard">Dashboard</a></li>
+          <li><a href="#records">Activities</a></li>
+          <li><a href="#add">Add</a></li>
+          <li><a href="#settings">Settings</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </nav>
+
+      <button id="themeToggle" class="btn btn-ghost" type="button" aria-pressed="false">
+        Dark mode
+      </button>
+    </div>
+  </header>
+
+  <main id="main" class="wrap" tabindex="-1">
+    <h1>Plan your week on campus</h1>
+    <p class="lede">
+      Track tasks and events with a due date, a duration in minutes and a tag.
+      Everything is saved in your browser, and nothing leaves your device.
+    </p>
+
+    <!-- Global announcements -->
+    <p id="statusRegion" class="status-bar" role="status" aria-live="polite"></p>
+    <p id="errorRegion" class="status-bar status-bar--error" role="alert" aria-live="assertive"></p>
+
+    <!-- ============ DASHBOARD ============ -->
+    <section id="dashboard" aria-labelledby="dashboard-h">
+      <h2 id="dashboard-h">Dashboard</h2>
+
+      <ul class="stats" role="list">
+        <li class="card stat">
+          <p class="stat-value" id="statCount">0</p>
+          <p class="stat-label">Activities</p>
+        </li>
+        <li class="card stat">
+          <p class="stat-value" id="statTotal">0m</p>
+          <p class="stat-label">Total planned time</p>
+        </li>
+        <li class="card stat">
+          <p class="stat-value" id="statTopTag">&ndash;</p>
+          <p class="stat-label">Top tag</p>
+        </li>
+        <li class="card stat">
+          <p class="stat-value" id="statUpcoming">0</p>
+          <p class="stat-label">Due in next 7 days</p>
+        </li>
+      </ul>
+
+      <div class="panels">
+        <section class="card" aria-labelledby="cap-h">
+          <h3 id="cap-h">Weekly time target</h3>
+          <p class="muted">
+            The target is set in <a href="#settings">Settings</a> and compared against activities
+            due in the next seven days.
+          </p>
+
+          <div class="meter" role="img" aria-labelledby="capMeterLabel">
+            <div class="meter-fill" id="capFill" style="width:0%"></div>
+          </div>
+          <p class="visually-hidden" id="capMeterLabel">Weekly time target progress</p>
+
+          <!-- polite while under the target -->
+          <p id="capPolite" class="cap-msg" role="status" aria-live="polite"></p>
+          <!-- assertive once the target is exceeded -->
+          <p id="capAlert" class="cap-msg cap-msg--over" role="alert" aria-live="assertive"></p>
+        </section>
+
+        <section class="card" aria-labelledby="chart-h">
+          <h3 id="chart-h">Next 7 days</h3>
+          <figure class="chart-figure">
+            <div class="chart" id="chart"></div>
+            <figcaption class="muted">Planned minutes per day, starting today.</figcaption>
+          </figure>
+          <table class="visually-hidden" id="chartTable">
+            <caption>Planned time for the next seven days</caption>
+            <thead>
+              <tr><th scope="col">Day</th><th scope="col">Planned time</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </section>
+      </div>
+    </section>
+
+    <!-- ============ RECORDS ============ -->
+    <section id="records" aria-labelledby="records-h">
+      <h2 id="records-h">Activities</h2>
+
+      <div class="toolbar card">
+        <div class="field field--grow">
+          <label for="searchInput">Search (regular expression)</label>
+          <input
+            type="text"
+            id="searchInput"
+            name="search"
+            placeholder="e.g. lab|quiz   or   @tag:Study"
+            autocomplete="off"
+            spellcheck="false"
+            aria-describedby="searchHelp searchError" />
+          <p class="help" id="searchHelp">
+            Try <code>\b\d{2}:\d{2}\b</code> for time tokens, <code>\b(\w+)\s+\1\b</code> for repeated
+            words, or <code>@tag:Study</code> to filter by tag.
+          </p>
+          <p class="error" id="searchError" aria-live="polite"></p>
+        </div>
+
+        <div class="field">
+          <label for="sortSelect">Sort by</label>
+          <select id="sortSelect" name="sort">
+            <option value="dueDate:asc">Due date (soonest first)</option>
+            <option value="dueDate:desc">Due date (latest first)</option>
+            <option value="title:asc">Title (A to Z)</option>
+            <option value="title:desc">Title (Z to A)</option>
+            <option value="duration:desc">Duration (longest first)</option>
+            <option value="duration:asc">Duration (shortest first)</option>
+          </select>
+        </div>
+
+        <div class="field field--check">
+          <input type="checkbox" id="caseToggle" checked />
+          <label for="caseToggle">Ignore case</label>
+        </div>
+
+        <button type="button" class="btn btn-ghost" id="clearSearch">Clear search</button>
+      </div>
+
+      <p id="searchStatus" class="status-bar" role="status" aria-live="polite"></p>
+
+      <div class="table-wrap">
+        <table id="recordsTable">
+          <caption class="visually-hidden">
+            All planned activities. Use the column buttons to sort, Edit to change a row in place,
+            and Delete to remove a row.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col" data-key="title">
+                <button type="button" class="sort-btn" data-sort="title">Title<span class="arrow" aria-hidden="true"></span></button>
+              </th>
+              <th scope="col" data-key="dueDate">
+                <button type="button" class="sort-btn" data-sort="dueDate">Due date<span class="arrow" aria-hidden="true"></span></button>
+              </th>
+              <th scope="col" data-key="duration">
+                <button type="button" class="sort-btn" data-sort="duration">Duration<span class="arrow" aria-hidden="true"></span></button>
+              </th>
+              <th scope="col" data-key="tag">
+                <button type="button" class="sort-btn" data-sort="tag">Tag<span class="arrow" aria-hidden="true"></span></button>
+              </th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recordsBody"></tbody>
+        </table>
+      </div>
+
+      <p class="empty" id="emptyState" hidden>
+        No activities match. Clear the search, or add your first activity below.
+      </p>
+    </section>
+
+    <!-- ============ ADD / EDIT FORM ============ -->
+    <section id="add" aria-labelledby="add-h">
+      <h2 id="add-h">Add an activity</h2>
+      <p class="muted">
+        Every field is checked with a regular expression before it is saved. To change something later,
+        press <strong>Edit</strong> on its row and the row becomes an editable form in place.
+      </p>
+
+      <form id="activityForm" class="card form" novalidate>
+        <fieldset>
+          <legend class="visually-hidden">Activity details</legend>
+
+          <div class="field">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" autocomplete="off"
+                   aria-describedby="titleHelp titleError" required />
+            <p class="help" id="titleHelp">No leading or trailing spaces, and no repeated words.</p>
+            <p class="error" id="titleError"></p>
+          </div>
+
+          <div class="field">
+            <label for="dueDate">Due date</label>
+            <input type="text" id="dueDate" name="dueDate" placeholder="YYYY-MM-DD"
+                   inputmode="numeric" autocomplete="off"
+                   aria-describedby="dueDateHelp dueDateError" required />
+            <p class="help" id="dueDateHelp">Format YYYY-MM-DD, for example 2025-10-20.</p>
+            <p class="error" id="dueDateError"></p>
+          </div>
+
+          <div class="field">
+            <label for="duration">Duration (minutes)</label>
+            <input type="text" id="duration" name="duration" inputmode="decimal"
+                   autocomplete="off" aria-describedby="durationHelp durationError" required />
+            <p class="help" id="durationHelp">Whole minutes, or up to two decimals, for example 90 or 7.5.</p>
+            <p class="error" id="durationError"></p>
+          </div>
+
+          <div class="field">
+            <label for="tag">Tag</label>
+            <input type="text" id="tag" name="tag" list="tagOptions" autocomplete="off"
+                   aria-describedby="tagHelp tagError" required />
+            <datalist id="tagOptions"></datalist>
+            <p class="help" id="tagHelp">Letters, with single spaces or hyphens, for example Group-Work.</p>
+            <p class="error" id="tagError"></p>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">Add activity</button>
+            <button type="reset" class="btn btn-ghost">Reset form</button>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section id="settings" aria-labelledby="settings-h">
+      <h2 id="settings-h">Settings</h2>
+
+      <div class="panels">
+        <section class="card" aria-labelledby="prefs-h">
+          <h3 id="prefs-h">Preferences</h3>
+
+          <div class="field">
+            <label for="capInput">Weekly time target (minutes)</label>
+            <input type="text" id="capInput" inputmode="numeric" autocomplete="off"
+                   aria-describedby="capError" />
+            <p class="error" id="capError"></p>
+          </div>
+
+          <div class="field">
+            <label for="unitSelect">Show durations in</label>
+            <select id="unitSelect">
+              <option value="minutes">Minutes (90m)</option>
+              <option value="hours">Hours (1h 30m)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="tagsInput">Default tags (comma separated)</label>
+            <input type="text" id="tagsInput" autocomplete="off" aria-describedby="tagsError" />
+            <p class="error" id="tagsError"></p>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn btn-primary" id="saveSettings">Save preferences</button>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="data-h">
+          <h3 id="data-h">Your data</h3>
+          <p class="muted">Activities are written to this browser's local storage after every change.</p>
+
+          <div class="actions actions--wrap">
+            <button type="button" class="btn" id="exportJson">Export JSON</button>
+            <button type="button" class="btn" id="exportCsv">Export CSV</button>
+            <button type="button" class="btn" id="loadSeed">Load sample data</button>
+            <button type="button" class="btn btn-danger" id="clearData">Delete everything</button>
+          </div>
+
+          <div class="field">
+            <label for="importFile">Import JSON file</label>
+            <input type="file" id="importFile" accept="application/json,.json"
+                   aria-describedby="importHelp" />
+            <p class="help" id="importHelp">
+              The file must hold an array of activities. Every record is validated before anything is replaced.
+            </p>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section id="about" aria-labelledby="about-h">
+      <h2 id="about-h">About</h2>
+      <div class="card prose">
+        <h3>Why this exists</h3>
+        <p>
+          Campus Life Planner is a coursework project for the Building Responsive UI assignment. It is a
+          single-page, framework-free app that keeps track of campus tasks and events, measures how much
+          time they will take, and says something when a week gets overbooked.
+        </p>
+        <h3>How it works</h3>
+        <ul>
+          <li>Vanilla HTML, CSS and JavaScript ES modules, with no libraries.</li>
+          <li>Regular expressions validate every form field and power the activity search.</li>
+          <li>Data lives in <code>localStorage</code> and can be exported or imported as JSON.</li>
+        </ul>
+        <h3>Contact</h3>
+        <ul class="contact">
+          <li>GitHub: <a href="https://github.com/endahiro">github.com/endahiro</a></li>
+          <li>Email: <a href="mailto:saskevan@gmail.com">saskevan@gmail.com</a></li>
+          <li>Tests: <a href="tests.html">open the test page</a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Campus Life Planner &mdash; built with vanilla HTML, CSS and JavaScript.</p>
+      <p><a href="#main">Back to top</a></p>
+    </div>
+  </footer>
+
+  <script type="module" src="scripts/app.js"></script>
+</body>
+</html>

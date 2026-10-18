@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Campus Life Planner">
+  <rect width="64" height="64" rx="14" fill="#1f4fd8"/>
+  <rect x="12" y="16" width="40" height="34" rx="5" fill="#ffffff"/>
+  <rect x="12" y="16" width="40" height="9" rx="5" fill="#16369a"/>
+  <rect x="19" y="31" width="9" height="7" rx="2" fill="#1f4fd8"/>
+  <rect x="32" y="31" width="13" height="7" rx="2" fill="#ccd2e0"/>
+  <rect x="19" y="41" width="13" height="5" rx="2" fill="#ccd2e0"/>
+  <rect x="36" y="41" width="9" height="5" rx="2" fill="#1f4fd8"/>
+</svg>
