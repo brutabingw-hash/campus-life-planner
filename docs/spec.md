@@ -159,7 +159,7 @@ line, and the content is capped at 1100px and centred.
 | Sorting | `aria-sort` on the active column header, arrow glyph is `aria-hidden` |
 | Chart | the bars are `aria-hidden="true"`; the same numbers are in a visually hidden `<table>` with a caption |
 | Highlighting | matches are wrapped in `<mark>`, which keeps the text in the accessibility tree; record text is HTML-escaped before the wrap |
-| Contrast | body text 13.9:1, brand on white 6.1:1, danger on white 6.0:1; dark palette re-checked separately |
+| Contrast | measured, not estimated: lowest text pair 6.0:1 light / 6.7:1 dark, against a 4.5:1 requirement; controls get a separate `--border-strong` token so their outlines clear the 3:1 of WCAG 1.4.11 |
 | Motion | every animation is disabled under `prefers-reduced-motion: reduce` |
 | Colour | colour never carries meaning alone: the over-target state also changes the wording |
 

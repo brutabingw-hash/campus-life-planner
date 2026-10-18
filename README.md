@@ -353,9 +353,18 @@ list is now empty.
 - **Highlighting.** Record text is escaped before matches are wrapped in
   `<mark>`, so a title like `<img onerror=...>` renders as text. `<mark>`
   keeps the content in the accessibility tree.
-- **Contrast.** Body text 13.9:1 on the page background, brand blue 6.1:1 on
-  white, danger red 6.0:1 - all above the 4.5:1 requirement. The dark palette
-  was checked separately (brand 7.4:1 on the dark surface).
+- **Contrast.** Every pair was measured with the WCAG relative-luminance
+  formula, not eyeballed. In the light theme: body text 16.4:1 on the page
+  background and 17.8:1 on a card, muted text 6.3:1, brand blue 6.6:1, danger
+  red 6.5:1, button labels on brand 6.6:1, and `<mark>` text 12.3:1 on its
+  highlight. The lowest text pair in the whole app is 6.0:1 (danger red on the
+  warning background), well clear of the 4.5:1 requirement. The dark theme was
+  measured separately and its lowest text pair is 6.7:1.
+- **Non-text contrast.** Borders use two tiers, because WCAG 1.4.11 asks 3:1
+  only for things that identify a control. `--border` stays subtle for card
+  edges and table rules (decoration), while `--border-strong` outlines inputs,
+  selects, buttons and the target meter at 3.7:1 on white and 4.1:1 on the dark
+  surface. The focus ring is 6.1:1 on the page background.
 - **Colour is never the only signal.** Going over the target changes the
   wording, not just the meter colour.
 - **Motion.** All transitions and keyframes collapse to near-zero under
